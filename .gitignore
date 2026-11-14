@@ -1,1 +1,13 @@
-/migrations/
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Django logs
+logs/
+
+# Environment
+venv/
+
+
+# Database
+db.sqlite3

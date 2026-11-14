@@ -15,6 +15,9 @@ urlpatterns =[    path('admin-login/', admin_login_api),
 
                 path('cart/update_quantity/', update_cart_quantity),
                 path('delete_cart_items/', delete_cart_items),
+                path('place_order/', place_order),
+                path('order/<int:user_id>/', user_orders),
+                
 
 
 

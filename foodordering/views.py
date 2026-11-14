@@ -7,7 +7,10 @@ from .serializers import *
 import random
 from django.db.models import Q
 from django.contrib.auth.hashers import check_password
+import logging
 
+# Get an instance of a logger
+logger = logging.getLogger('django')
 
 from django.contrib.auth.hashers import make_password
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -155,5 +158,50 @@ def delete_cart_items(request):
         return Response({"message","order deleted"}, status=200)
     except:
         return Response({"message":"something went wrong"}, status =404)
+def make_unique_order_number():
+    num=str(random.randint(1000000,9999999))
+    if not OrderAddress.objects.filter(order_number=num).exists():
+        return num
+
+@api_view(['POST'])
+def place_order(request):
+    user_id=request.data.get('userID')
+    #this right side userID, address, pymnt_mod all thesr comes from 
+    # front_end so there spelling should match fronend, we will use postman here
+    address=request.data.get('address')
+    payment_mode=request.data.get('pyment_mod')
+    crd_num=request.data.get('card_num')
+    expry=request.data.get('exp')
+    cvv=request.data.get('cvv')
+    try:
+        order=Order.objects.filter(user_id=user_id, is_order_placed=False)
+        order_number=make_unique_order_number() 
+        order.update(order_number=order_number, is_order_placed=True)  
+        OrderAddress.objects.create(
+            user_id=user_id,
+            order_number=order_number,
+            address=address
+        )   
+        PaymentDetails.objects.create(
+            user_id=user_id,
+            order_number=order_number,
+            payment_mode=payment_mode,
+            card_number=crd_num if payment_mode=='online' else None,
+            expiry_date=expry if payment_mode=='online' else None,
+            cvv=cvv if payment_mode=='online' else None,
 
 
+        )  
+        return Response({"message":f"order placed successfully ! order no {order_number}"}, status=201)
+
+    except Exception as e: #added exception handling for better error handling
+        logger.error(str(e), exc_info=True)
+        return Response({"message":"Something went wrong"}, status=401)
+
+
+@api_view(['GET'])
+
+def user_orders(request, user_id):
+    orders=OrderAddress.objects.filter(user_id=user_id).order_by('-id')
+    serializers=MyOrderSerializer(orders, many=True)
+    return Response(serializers.data)

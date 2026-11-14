@@ -18,3 +18,14 @@ class CartOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model=Order
         fields=['id','food','quantity']
+
+class MyOrderSerializer(serializers.ModelSerializer):
+    order_final_status=serializers.SerializerMethodField() #this is not model fiels
+    class Meta:
+        model=OrderAddress
+        fields=['order_status','order_time','order_final_status']
+
+    def get_order_final_status(self, obj):#obj respresnt model
+        return obj.order_final_status or 'Waiting for restrauent confiramation'
+
+
