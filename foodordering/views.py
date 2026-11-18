@@ -201,7 +201,19 @@ def place_order(request):
 
 @api_view(['GET'])
 
-def user_orders(request, user_id):
-    orders=OrderAddress.objects.filter(user_id=user_id).order_by('-id')
-    serializers=MyOrderSerializer(orders, many=True)
+def order_by_order_number(request, order_number):
+    try:
+        orders=Order.objects.filter(order_number=order_number, is_order_placed=True).select_related('food')
+        serializers=OrderSerializer(orders, many=True)
+        return Response(serializers.data)
+    except Exception as e:
+        logger.error(str(e))
+        return Response({"message":"Something went wrong"}, status=401)
+
+
+
+@api_view(['GET'])
+def get_order_address(request, order_num):
+    order=OrderAddress.objects.get(order_number=order_num)
+    serializers=OrderAdressSerializer(order)
     return Response(serializers.data)

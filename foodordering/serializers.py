@@ -28,4 +28,26 @@ class MyOrderSerializer(serializers.ModelSerializer):
     def get_order_final_status(self, obj):#obj respresnt model
         return obj.order_final_status or 'Waiting for restrauent confiramation'
 
+class OrderSerializer(serializers.ModelSerializer):
+    food=FoodSerializer()
+    class Meta:
+        model=Order
+        fields=['food','quantity']
+
+class OrderAdressSerializer(serializers.ModelSerializer):
+    payment_mod=serializers.SerializerMethodField() 
+    class Meta:
+        model=OrderAddress
+        fields=['order_number','address','order_time','order_final_status','payment_mode']
+
+    def get_payment_mod(self, obj):# self represents to class , obj means orderAddress model
+        try:
+            payment=PaymentDetails.objects.get(order_number=obj.order_number)
+
+        except PaymentDetails.DoesNotExist:
+            return None
+            
+        
+
+        
 
